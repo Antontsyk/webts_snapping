@@ -1,24 +1,24 @@
 import Point from "./point";
-import Polygon from "./polygon";
+import Shape from "./shape";
 
 export default class CanvasState {
     private canvas: HTMLElement;
     private width: number;
     private height: number;
     private context: any;
-    private polygons: Array<any> = [];
-    private selection: Polygon = null;
+    private shapes: Array<Shape> = [];
+    private selection: Shape = null;
     private deltaMouse: Point = { x: 0, y: 0 };
 
-    constructor ( canvas: any, Polygons: Array<any> ) {
+    constructor ( canvas: any, shapes: Array<any> ) {
         this.canvas = canvas;
         this.width = canvas.width;
         this.height = canvas.height;
         this.context = canvas.getContext('2d');
-        this.polygons = Polygons;
+        this.shapes = shapes;
         this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this), true);
-        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
-        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), true);
+        /*this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
+        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), true);*/
         this.draw();
     }
 
@@ -27,16 +27,17 @@ export default class CanvasState {
         const mx: number = mouse.x;
         const my: number = mouse.y;
         this.deltaMouse = { x: -mx, y: -my };
-        this.selection = this.polygons.find( ( polygon: Polygon ) => {
-            return this.context.isPointInPath( polygon.path, mx, my )
+        this.selection = this.shapes.find( ( shape: Shape ) => {
+            return this.context.isPointInPath( shape.path, mx, my )
         });
 
         if (this.selection) {
+            console.log( this.selection );
             this.draw();
         }
     }
 
-    private onMouseMove ( event: MouseEvent ) {
+    /*private onMouseMove ( event: MouseEvent ) {
         if (!this.selection) {
             return;
         }
@@ -53,7 +54,7 @@ export default class CanvasState {
     private onMouseUp (){
         this.selection = null;
         this.draw();
-    }
+    }*/
 
     private clear (): void {
         this.context.clearRect(0, 0, this.width, this.height);
@@ -69,17 +70,17 @@ export default class CanvasState {
 
     private draw (): void {
         this.clear();
-        this.polygons.forEach(( polygon: Polygon, index: number ) => {
-            polygon.intersection.length ? this.context.fillStyle = 'red' : this.context.fillStyle = polygon.fill;
-            this.context.fill(polygon.path);
+        this.shapes.forEach(( shape: Shape, index: number ) => {
+            this.context.fillStyle = shape.fill;
+            this.context.fill(shape.path);
         });
     }
 
-    private intersectionPolygon () {
+    /*private intersectionPolygon () {
 
         let indexSelectionElement: number = this.polygons.indexOf( this.selection );
 
-        this.polygons.forEach(( polygon: Polygon, index: number ) => {
+        this.polygons.forEach((polygon: Shape, index: number ) => {
 
             if (polygon == this.selection) {
                 return;
@@ -110,6 +111,6 @@ export default class CanvasState {
             }
 
         });
-    }
+    }*/
 
 }
