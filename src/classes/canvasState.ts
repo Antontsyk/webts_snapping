@@ -9,6 +9,7 @@ export default class CanvasState {
     private shapes: Array<Shape> = [];
     private selection: Shape = null;
     private deltaMouse: Point = { x: 0, y: 0 };
+    private startPosition: Point = { x: 0, y: 0 };
 
     constructor ( canvas: any, shapes: Array<any> ) {
         this.canvas = canvas;
@@ -17,8 +18,8 @@ export default class CanvasState {
         this.context = canvas.getContext('2d');
         this.shapes = shapes;
         this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this), true);
-        /*this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
-        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), true);*/
+        this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
+        this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), true);
         this.draw();
     }
 
@@ -26,35 +27,62 @@ export default class CanvasState {
         const mouse: any = this.getMouse( event );
         const mx: number = mouse.x;
         const my: number = mouse.y;
-        this.deltaMouse = { x: -mx, y: -my };
+
         this.selection = this.shapes.find( ( shape: Shape ) => {
             return this.context.isPointInPath( shape.path, mx, my )
         });
 
         if (this.selection) {
-            console.log( this.selection );
+            this.startPosition = {
+              x: this.selection.x,
+              y: this.selection.y
+            };
+            this.deltaMouse = { x: mx - this.selection.x, y: my - this.selection.y };
+            this.selection.active = true;
             this.draw();
         }
     }
 
-    /*private onMouseMove ( event: MouseEvent ) {
+    private onMouseMove ( event: MouseEvent ) {
         if (!this.selection) {
             return;
         }
 
         const mouse: any = this.getMouse( event );
-        const deltaX: number = this.deltaMouse.x + mouse.x;
-        const deltaY: number = this.deltaMouse.y + mouse.y;
-        this.deltaMouse = { x: -mouse.x, y: -mouse.y };
-        this.selection.updatePolygon( deltaX, deltaY );
-        this.intersectionPolygon();
+        let newX: number = mouse.x - this.deltaMouse.x;
+        let newY: number = mouse.y - this.deltaMouse.y;
+
+        if( newX <= 0 ){
+            newX = 0;
+        } else if( newX + this.selection.width >= this.width ){
+            newX = this.width - this.selection.width;
+        }
+
+        if( newY <= 0 ){
+            newY = 0;
+        } else if( newY + this.selection.height >= this.height ) {
+            newY = this.height - this.selection.height;
+        }
+
+
+        this.selection.updateShape( newX, newY );
+        this.snappingShape();
+        console.log( this.startPosition, this.selection.overlap )
         this.draw();
     }
 
     private onMouseUp (){
-        this.selection = null;
-        this.draw();
-    }*/
+        if( this.selection ){
+            if( this.selection.overlap ){
+                this.selection.updateShape( this.startPosition.x, this.startPosition.y );
+                this.selection.overlap = false;
+            }
+            this.snappingShape();
+            this.draw();
+            this.selection.active = false;
+            this.selection = null;
+        }
+    }
 
     private clear (): void {
         this.context.clearRect(0, 0, this.width, this.height);
@@ -70,47 +98,80 @@ export default class CanvasState {
 
     private draw (): void {
         this.clear();
-        this.shapes.forEach(( shape: Shape, index: number ) => {
-            this.context.fillStyle = shape.fill;
+        this.shapes.forEach(( shape: Shape ) => {
+            shape.overlap ? this.context.fillStyle = 'red' : this.context.fillStyle = shape.fill;
             this.context.fill(shape.path);
         });
     }
 
-    /*private intersectionPolygon () {
+    private snappingShape() {
+        const mergeSpace: number = 10;
+        const X: number = this.selection.x;
+        const Y: number = this.selection.y;
+        const W: number = this.selection.width;
+        const H: number = this.selection.height;
+        this.selection.overlap = false;
+        this.shapes.forEach( ( shape: Shape ) => {
+            if( shape != this.selection ){
+                if( X + W > shape.x &&
+                    X < shape.x + shape.width &&
+                    Y + H > shape.y &&
+                    Y < shape.y + shape.height ){
+                    this.selection.overlap = true;
+                    shape.overlap = true;
+                    return;
+                }else {
+                    shape.overlap = false;
+                }
 
-        let indexSelectionElement: number = this.polygons.indexOf( this.selection );
-
-        this.polygons.forEach((polygon: Shape, index: number ) => {
-
-            if (polygon == this.selection) {
-                return;
+                if( shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0 && Math.abs(Y - shape.y ) <= mergeSpace ) {
+                    this.selection.x = shape.x - W;
+                    this.selection.y = shape.y;
+                    console.log('to right to top');
+                }else if( shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0 && Math.abs((Y + H) - ( shape.y + shape.height ) ) <= mergeSpace ){
+                    this.selection.x = shape.x - W;
+                    this.selection.y = shape.y + shape.height - H;
+                    console.log('to right to bottom');
+                }else if( (X - ( shape.x + shape.width)) <= mergeSpace && (X - ( shape.x + shape.width)) >= 0 && Math.abs(Y - shape.y ) <= mergeSpace ){
+                    this.selection.x = shape.x + shape.width;
+                    this.selection.y = shape.y;
+                    console.log('to left to top');
+                }else if( (X - ( shape.x + shape.width)) <= mergeSpace && (X - ( shape.x + shape.width)) >= 0 && Math.abs((Y + H ) - ( shape.y + shape.height) ) <= mergeSpace ){
+                    this.selection.x = shape.x + shape.width;
+                    this.selection.y = shape.y + shape.height - H;
+                    console.log('to left to bottom');
+                }else if( shape.y - ( Y + H ) <= mergeSpace && shape.y - ( Y + H ) >= 0 && Math.abs( X - shape.x ) <= mergeSpace ){
+                    this.selection.x = shape.x;
+                    this.selection.y = shape.y - H;
+                    console.log('to bottom to left');
+                }else if( shape.y - ( Y + H ) <= mergeSpace && shape.y - ( Y + H ) >= 0 && Math.abs( ( X + W )- ( shape.x + shape.width ) ) <= mergeSpace ){
+                    this.selection.x = shape.x + ( shape.width- W );
+                    this.selection.y = shape.y - H;
+                    console.log('to bottom to right');
+                }else if( Y - ( shape.y + shape.height) <= mergeSpace && Y - ( shape.y + shape.height ) >= 0 && Math.abs( X - shape.x ) <= mergeSpace ){
+                    this.selection.x = shape.x;
+                    this.selection.y = shape.y + shape.height;
+                    console.log('to top to left');
+                }else if( Y - ( shape.y + shape.height ) <= mergeSpace && Y - ( shape.y + shape.height ) >= 0 && Math.abs( ( X + W )- ( shape.x + shape.width ) ) <= mergeSpace ){
+                    this.selection.x = shape.x + ( shape.width- W );
+                    this.selection.y = shape.y + shape.height;
+                    console.log('to top to right');
+                }else if( Y - ( shape.y + shape.height) <= mergeSpace && Y - ( shape.y + shape.height ) >= 0 ){
+                    this.selection.y = shape.y + shape.height;
+                    console.log('to top all');
+                }else if( shape.y - ( Y + H ) <= mergeSpace && shape.y - ( Y + H ) >= 0 ){
+                    this.selection.y = shape.y - H;
+                    console.log('to bottom all');
+                }else if( (X - ( shape.x + shape.width)) <= mergeSpace && (X - ( shape.x + shape.width )) >= 0 ){
+                    this.selection.x = shape.x + shape.width;
+                    console.log('to left all');
+                }else if( shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0 ){
+                    this.selection.x = shape.x - W;
+                    console.log('to right all');
+                }
+                this.selection.updatePath()
+                this.draw();
             }
-
-            let isInterSelection: boolean = this.selection.way.some(( way: Point ) => {
-               return this.context.isPointInPath( polygon.path, way.x, way.y );
-            });
-
-            let isInterPolygon: boolean = polygon.way.some( ( way: Point ) => {
-                return this.context.isPointInPath( this.selection.path, way.x, way.y );
-            });
-
-            if( isInterPolygon || isInterSelection ){
-                if( this.selection.intersection.indexOf( index ) == -1 ){
-                    this.selection.intersection.push(index)
-                }
-                if( polygon.intersection.indexOf( indexSelectionElement ) == -1 ){
-                    polygon.intersection.push( indexSelectionElement );
-                }
-            } else {
-                if( this.selection.intersection.indexOf( index ) != -1 ){
-                    this.selection.intersection.splice( this.selection.intersection.indexOf( index ) , 1 );
-                }
-                if( polygon.intersection.indexOf( indexSelectionElement ) != -1 ){
-                    polygon.intersection.splice( polygon.intersection.indexOf( indexSelectionElement ) , 1 );
-                }
-            }
-
-        });
-    }*/
-
+        })
+    }
 }
