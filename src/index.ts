@@ -4,8 +4,9 @@ import CanvasState from "./classes/canvasState";
 const canvas: any = document.getElementById('canvas');
 
 function updateWindow(){
-    canvas.width = window.innerWidth - 80;
-    canvas.height = window.innerHeight - 80;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     let state: any = new CanvasState(canvas, Shapes);
 }
 

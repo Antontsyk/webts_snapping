@@ -76,7 +76,6 @@ export default class CanvasState {
                 this.selection.overlap = false;
             }
             this.snappingShape();
-            this.selection.active = false;
             this.selection = null;
             this.draw();
         }
@@ -98,28 +97,23 @@ export default class CanvasState {
         this.clear();
         this.shapes.forEach((shape: Shape) => {
             shape.overlap ? this.context.fillStyle = 'red' : this.context.fillStyle = shape.fill;
+            shape.updatePath();
             this.context.fill(shape.path);
         });
         if (this.selection != null) {
             this.context.strokeStyle = "red";
             this.context.lineWidth = 2;
-            this.context.strokeRect( this.selection.x + 1, this.selection.y + 1, this.selection.width - 2, this.selection.height - 2 );
+            this.context.strokeRect(this.selection.x + 1, this.selection.y + 1, this.selection.width - 2, this.selection.height - 2);
         }
     }
 
     private snappingShape() {
         const mergeSpace: number = 10;
-        const X: number = this.selection.x;
-        const Y: number = this.selection.y;
-        const W: number = this.selection.width;
-        const H: number = this.selection.height;
         this.selection.overlap = false;
+
         this.shapes.forEach((shape: Shape) => {
             if (shape != this.selection) {
-                if (X + W > shape.x &&
-                    X < shape.x + shape.width &&
-                    Y + H > shape.y &&
-                    Y < shape.y + shape.height) {
+                if (this.overlapShape(shape)) {
                     this.selection.overlap = true;
                     shape.overlap = true;
                     return;
@@ -127,54 +121,75 @@ export default class CanvasState {
                     shape.overlap = false;
                 }
 
-                if (shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0 && Math.abs(Y - shape.y) <= mergeSpace) {
-                    this.selection.x = shape.x - W;
-                    this.selection.y = shape.y;
-                    console.log('to right to top');
-                } else if (shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0 && Math.abs((Y + H) - (shape.y + shape.height)) <= mergeSpace) {
-                    this.selection.x = shape.x - W;
-                    this.selection.y = shape.y + shape.height - H;
-                    console.log('to right to bottom');
-                } else if ((X - (shape.x + shape.width)) <= mergeSpace && (X - (shape.x + shape.width)) >= 0 && Math.abs(Y - shape.y) <= mergeSpace) {
-                    this.selection.x = shape.x + shape.width;
-                    this.selection.y = shape.y;
-                    console.log('to left to top');
-                } else if ((X - (shape.x + shape.width)) <= mergeSpace && (X - (shape.x + shape.width)) >= 0 && Math.abs((Y + H) - (shape.y + shape.height)) <= mergeSpace) {
-                    this.selection.x = shape.x + shape.width;
-                    this.selection.y = shape.y + shape.height - H;
-                    console.log('to left to bottom');
-                } else if (shape.y - (Y + H) <= mergeSpace && shape.y - (Y + H) >= 0 && Math.abs(X - shape.x) <= mergeSpace) {
-                    this.selection.x = shape.x;
-                    this.selection.y = shape.y - H;
-                    console.log('to bottom to left');
-                } else if (shape.y - (Y + H) <= mergeSpace && shape.y - (Y + H) >= 0 && Math.abs((X + W) - (shape.x + shape.width)) <= mergeSpace) {
-                    this.selection.x = shape.x + (shape.width - W);
-                    this.selection.y = shape.y - H;
-                    console.log('to bottom to right');
-                } else if (Y - (shape.y + shape.height) <= mergeSpace && Y - (shape.y + shape.height) >= 0 && Math.abs(X - shape.x) <= mergeSpace) {
-                    this.selection.x = shape.x;
-                    this.selection.y = shape.y + shape.height;
-                    console.log('to top to left');
-                } else if (Y - (shape.y + shape.height) <= mergeSpace && Y - (shape.y + shape.height) >= 0 && Math.abs((X + W) - (shape.x + shape.width)) <= mergeSpace) {
-                    this.selection.x = shape.x + (shape.width - W);
-                    this.selection.y = shape.y + shape.height;
-                    console.log('to top to right');
-                } else if (Y - (shape.y + shape.height) <= mergeSpace && Y - (shape.y + shape.height) >= 0) {
-                    this.selection.y = shape.y + shape.height;
-                    console.log('to top all');
-                } else if (shape.y - (Y + H) <= mergeSpace && shape.y - (Y + H) >= 0) {
-                    this.selection.y = shape.y - H;
-                    console.log('to bottom all');
-                } else if ((X - (shape.x + shape.width)) <= mergeSpace && (X - (shape.x + shape.width)) >= 0) {
-                    this.selection.x = shape.x + shape.width;
-                    console.log('to left all');
-                } else if (shape.x - (X + W) <= mergeSpace && shape.x - (X + W) >= 0) {
-                    this.selection.x = shape.x - W;
-                    console.log('to right all');
+                if (this.deltaX_Right(shape, mergeSpace)) {
+                    this.selection.x = shape.x - this.selection.width; //to right to all
+                    if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
+                        this.selection.y = shape.y + shape.height - this.selection.height; //to right to bottom
+                    } else if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
+                        this.selection.y = shape.y; //to right to top
+                    }
+                    return;
+                } else if (this.deltaX_Left(shape, mergeSpace)) {
+                    this.selection.x = shape.x + shape.width; //to left to all
+                    if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
+                        this.selection.y = shape.y; //to left to top
+                    } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
+                        this.selection.y = shape.y + shape.height - this.selection.height; //to left to bottom
+                    }
+                    return;
+                } else if (this.deltaY_Top(shape, mergeSpace)) {
+                    this.selection.y = shape.y + shape.height; //to top all
+                    if (Math.abs(this.selection.x - shape.x) <= mergeSpace) {
+                        this.selection.x = shape.x; //to top to left
+                    } else if (Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace) {
+                        this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
+                    }
+                    return;
+                } else if (this.deltaY_Bottom(shape, mergeSpace)) {
+                    this.selection.y = shape.y - this.selection.height; //to bottom all
+                    if (Math.abs(this.selection.x - shape.x) <= mergeSpace) {
+                        this.selection.x = shape.x; //to bottom to left
+                    } else if (Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace) {
+                        this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
+                    }
                 }
-                this.selection.updatePath()
-                this.draw();
             }
         })
     }
+
+    private overlapShape(shape: Shape): boolean {
+        return this.selection.x + this.selection.width > shape.x &&
+            this.selection.x < shape.x + shape.width &&
+            this.selection.y + this.selection.height > shape.y &&
+            this.selection.y < shape.y + shape.height;
+    }
+
+    private deltaX_All(shape: Shape): boolean {
+        return this.selection.x + this.selection.width - shape.x >= 0 && shape.x + shape.width - this.selection.x >= 0
+    }
+
+    private delteY_All(shape: Shape): boolean {
+        return this.selection.y + this.selection.height - shape.y >= 0 && shape.y + shape.height - this.selection.y >= 0
+    }
+
+    private deltaX_Left(shape: Shape, mergeSpace: number): boolean {
+        const spaceOnShape: number = this.selection.x - (shape.x + shape.width);
+        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.delteY_All(shape);
+    }
+
+    private deltaX_Right(shape: Shape, mergeSpace: number): boolean {
+        const spaceOnShapes: number = shape.x - (this.selection.x + this.selection.width);
+        return spaceOnShapes <= mergeSpace && spaceOnShapes >= 0 && this.delteY_All(shape);
+    }
+
+    private deltaY_Top(shape: Shape, mergeSpace: number): boolean {
+        const spaceOnShape: number = this.selection.y - (shape.y + shape.height);
+        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.deltaX_All(shape);
+    }
+
+    private deltaY_Bottom(shape: Shape, mergeSpace: number): boolean {
+        const spaceOnShape: number = shape.y - (this.selection.y + this.selection.height);
+        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.deltaX_All(shape);
+    }
+
 }
