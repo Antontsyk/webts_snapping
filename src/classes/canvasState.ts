@@ -38,7 +38,6 @@ export default class CanvasState {
                 y: this.selection.y
             };
             this.deltaMouse = {x: mx - this.selection.x, y: my - this.selection.y};
-            this.selection.active = true;
             this.draw();
         }
     }
@@ -47,24 +46,8 @@ export default class CanvasState {
         if (!this.selection) {
             return;
         }
-
         const mouse: any = this.getMouse(event);
-        let newX: number = mouse.x - this.deltaMouse.x;
-        let newY: number = mouse.y - this.deltaMouse.y;
-
-        if (newX <= 0) {
-            newX = 0;
-        } else if (newX + this.selection.width >= this.width) {
-            newX = this.width - this.selection.width;
-        }
-
-        if (newY <= 0) {
-            newY = 0;
-        } else if (newY + this.selection.height >= this.height) {
-            newY = this.height - this.selection.height;
-        }
-
-        this.selection.updateShape(newX, newY);
+        this.selection.updateShape(mouse.x - this.deltaMouse.x, mouse.y - this.deltaMouse.y );
         this.snappingShape();
         this.draw();
     }
@@ -75,7 +58,7 @@ export default class CanvasState {
                 this.selection.updateShape(this.startPosition.x, this.startPosition.y);
                 this.selection.overlap = false;
             }
-            this.snappingShape();
+            //this.snappingShape();
             this.selection = null;
             this.draw();
         }
@@ -108,7 +91,7 @@ export default class CanvasState {
     }
 
     private snappingShape() {
-        const mergeSpace: number = 10;
+        const mergeSpace: number = 40;
         this.selection.overlap = false;
 
         this.shapes.forEach((shape: Shape) => {
@@ -128,7 +111,6 @@ export default class CanvasState {
                     } else if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
                         this.selection.y = shape.y; //to right to top
                     }
-                    return;
                 } else if (this.deltaX_Left(shape, mergeSpace)) {
                     this.selection.x = shape.x + shape.width; //to left to all
                     if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
@@ -136,25 +118,40 @@ export default class CanvasState {
                     } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
                         this.selection.y = shape.y + shape.height - this.selection.height; //to left to bottom
                     }
-                    return;
                 } else if (this.deltaY_Top(shape, mergeSpace)) {
                     this.selection.y = shape.y + shape.height; //to top all
-                    if (Math.abs(this.selection.x - shape.x) <= mergeSpace) {
+                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
                         this.selection.x = shape.x; //to top to left
-                    } else if (Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace) {
+                        console.log('//to top to left')
+                    } else if (this.inspectedSpaceForSnappingToRight( shape, mergeSpace )) {
                         this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
+                        console.log('//to top to right')
                     }
-                    return;
                 } else if (this.deltaY_Bottom(shape, mergeSpace)) {
                     this.selection.y = shape.y - this.selection.height; //to bottom all
-                    if (Math.abs(this.selection.x - shape.x) <= mergeSpace) {
+                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
                         this.selection.x = shape.x; //to bottom to left
-                    } else if (Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace) {
+                    } else if (this.inspectedSpaceForSnappingToRight( shape, mergeSpace )) {
                         this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
                     }
                 }
             }
-        })
+        });
+        this.inspectedIsEnd();
+    }
+
+    private inspectedIsEnd (){
+        if (this.selection.x <= 0) {
+            this.selection.x = 0;
+        } else if (this.selection.x + this.selection.width >= this.width) {
+            this.selection.x = this.width - this.selection.width;
+        }
+
+        if (this.selection.y <= 0) {
+            this.selection.y = 0;
+        } else if (this.selection.y + this.selection.height >= this.height) {
+            this.selection.y = this.height - this.selection.height;
+        }
     }
 
     private overlapShape(shape: Shape): boolean {
@@ -162,6 +159,14 @@ export default class CanvasState {
             this.selection.x < shape.x + shape.width &&
             this.selection.y + this.selection.height > shape.y &&
             this.selection.y < shape.y + shape.height;
+    }
+
+    private inspectedSpaceForSnappingToLeft(shape: Shape, mergeSpace: number): boolean {
+        return Math.abs(this.selection.x - shape.x) <= mergeSpace && this.selection.x + this.selection.width <= this.width;
+    }
+
+    private inspectedSpaceForSnappingToRight(shape: Shape, mergeSpace: number): boolean {
+        return Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace && this.selection.x >= 0;
     }
 
     private deltaX_All(shape: Shape): boolean {
