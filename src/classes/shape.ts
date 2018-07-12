@@ -1,3 +1,12 @@
+import Point from "./point";
+
+interface SnappingParametrs {
+    necessarySnappingWithThis: boolean,
+    deltaSnappingWithSelection: number,
+    coordinatsForSnappingSelection: Point;
+}
+
+
 export default class Shape {
 
     public x: number;
@@ -6,8 +15,15 @@ export default class Shape {
     public height: number;
     public fill: string;
     public path: any;
-    public active: boolean = false;
     public overlap: boolean = false;
+    public snappingParametrs: SnappingParametrs = {
+        necessarySnappingWithThis: false,
+        deltaSnappingWithSelection: 0,
+        coordinatsForSnappingSelection:{
+            x: 0,
+            y: 0
+        }
+    };
 
     constructor( x: number, y: number, width: number, height: number, fill: string ){
         this.x = x;

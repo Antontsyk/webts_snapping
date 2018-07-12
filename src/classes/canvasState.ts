@@ -47,8 +47,8 @@ export default class CanvasState {
             return;
         }
         const mouse: any = this.getMouse(event);
-        this.selection.updateShape(mouse.x - this.deltaMouse.x, mouse.y - this.deltaMouse.y );
-        this.snappingShape();
+        this.selection.updateShape(mouse.x - this.deltaMouse.x, mouse.y - this.deltaMouse.y);
+
         this.draw();
     }
 
@@ -58,7 +58,9 @@ export default class CanvasState {
                 this.selection.updateShape(this.startPosition.x, this.startPosition.y);
                 this.selection.overlap = false;
             }
-            //this.snappingShape();
+            this.shapes.forEach((shape: Shape) => {
+                shape.overlap = false;
+            });
             this.selection = null;
             this.draw();
         }
@@ -78,6 +80,7 @@ export default class CanvasState {
 
     private draw(): void {
         this.clear();
+        this.snappingShape();
         this.shapes.forEach((shape: Shape) => {
             shape.overlap ? this.context.fillStyle = 'red' : this.context.fillStyle = shape.fill;
             shape.updatePath();
@@ -92,10 +95,53 @@ export default class CanvasState {
 
     private snappingShape() {
         const mergeSpace: number = 40;
+        if (!this.selection) {
+            return;
+        }
         this.selection.overlap = false;
+        //snappingParametrs
 
-        this.shapes.forEach((shape: Shape) => {
+        let arrayShapesForSnapping: Array<Shape> = this.shapes.filter((shape: Shape, index: number) => {
             if (shape != this.selection) {
+
+                if( this.deltaX_Right(shape, mergeSpace) || this.deltaX_Left(shape, mergeSpace) || this.deltaY_Top(shape, mergeSpace) || this.deltaY_Bottom(shape, mergeSpace) ){
+                    shape.snappingParametrs.necessarySnappingWithThis = true;
+                    return true
+                }
+
+                if (this.deltaX_Right(shape, mergeSpace)) {
+                    shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x - this.selection.width; //to right to all
+                    if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
+                        shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height - this.selection.height; //to right to bottom
+                    } else if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
+                        shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y; //to right to top
+                    }
+                } else if (this.deltaX_Left(shape, mergeSpace)) {
+                    shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + shape.width; //to left to all
+                    if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
+                        shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y; //to left to top
+                    } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
+                        shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height - this.selection.height; //to left to bottom
+                    }
+                }
+                if (this.deltaY_Top(shape, mergeSpace)) {
+                    this.selection.y = shape.y + shape.height; //to top all
+                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
+                        this.selection.x = shape.x; //to top to left
+                        console.log('//to top to left')
+                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
+                        this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
+                        console.log('//to top to right')
+                    }
+                } else if (this.deltaY_Bottom(shape, mergeSpace)) {
+                    this.selection.y = shape.y - this.selection.height; //to bottom all
+                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
+                        this.selection.x = shape.x; //to bottom to left
+                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
+                        this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
+                    }
+                }
+
                 if (this.overlapShape(shape)) {
                     this.selection.overlap = true;
                     shape.overlap = true;
@@ -103,6 +149,13 @@ export default class CanvasState {
                 } else {
                     shape.overlap = false;
                 }
+
+            }
+        });
+
+        console.log(arrayShapesForSnapping);
+        /*this.shapes.forEach((shape: Shape, index: number) => {
+            if (shape != this.selection && !stopForEach) {
 
                 if (this.deltaX_Right(shape, mergeSpace)) {
                     this.selection.x = shape.x - this.selection.width; //to right to all
@@ -118,12 +171,13 @@ export default class CanvasState {
                     } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
                         this.selection.y = shape.y + shape.height - this.selection.height; //to left to bottom
                     }
-                } else if (this.deltaY_Top(shape, mergeSpace)) {
+                }
+                if (this.deltaY_Top(shape, mergeSpace)) {
                     this.selection.y = shape.y + shape.height; //to top all
                     if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
                         this.selection.x = shape.x; //to top to left
                         console.log('//to top to left')
-                    } else if (this.inspectedSpaceForSnappingToRight( shape, mergeSpace )) {
+                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
                         this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
                         console.log('//to top to right')
                     }
@@ -131,16 +185,26 @@ export default class CanvasState {
                     this.selection.y = shape.y - this.selection.height; //to bottom all
                     if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
                         this.selection.x = shape.x; //to bottom to left
-                    } else if (this.inspectedSpaceForSnappingToRight( shape, mergeSpace )) {
+                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
                         this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
                     }
                 }
+
+                console.log( this.selection.x, this.selection.y )
+                if (this.overlapShape(shape)) {
+                    this.selection.overlap = true;
+                    shape.overlap = true;
+                    stopForEach = true;
+                    return;
+                } else {
+                    shape.overlap = false;
+                }
             }
-        });
+        });*/
         this.inspectedIsEnd();
     }
 
-    private inspectedIsEnd (){
+    private inspectedIsEnd() {
         if (this.selection.x <= 0) {
             this.selection.x = 0;
         } else if (this.selection.x + this.selection.width >= this.width) {
