@@ -99,108 +99,80 @@ export default class CanvasState {
             return;
         }
         this.selection.overlap = false;
-        //snappingParametrs
 
-        let arrayShapesForSnapping: Array<Shape> = this.shapes.filter((shape: Shape, index: number) => {
+        let arrayShapesForSnapping: Array<Shape> = this.shapes.filter((shape: Shape) => {
             if (shape != this.selection) {
-
-                if( this.deltaX_Right(shape, mergeSpace) || this.deltaX_Left(shape, mergeSpace) || this.deltaY_Top(shape, mergeSpace) || this.deltaY_Bottom(shape, mergeSpace) ){
-                    shape.snappingParametrs.necessarySnappingWithThis = true;
-                    return true
-                }
-
-                if (this.deltaX_Right(shape, mergeSpace)) {
+                if (this.checkDeltaToRightShapes(shape, mergeSpace).response) {
+                    shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToRightShapes(shape, mergeSpace).deltaSpace;
                     shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x - this.selection.width; //to right to all
+                    shape.snappingParametrs.coordinatsForSnappingSelection.y = this.selection.y;
                     if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height - this.selection.height; //to right to bottom
                     } else if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y; //to right to top
                     }
-                } else if (this.deltaX_Left(shape, mergeSpace)) {
+                } else if (this.checkDeltaToLeftShapes(shape, mergeSpace).response) {
+                    shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToLeftShapes(shape, mergeSpace).deltaSpace;
                     shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + shape.width; //to left to all
+                    shape.snappingParametrs.coordinatsForSnappingSelection.y = this.selection.y;
                     if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y; //to left to top
                     } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height - this.selection.height; //to left to bottom
                     }
-                }
-                if (this.deltaY_Top(shape, mergeSpace)) {
-                    this.selection.y = shape.y + shape.height; //to top all
+                } else if (this.checkDeltaToTopShapes(shape, mergeSpace).response) {
+                    shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToTopShapes(shape, mergeSpace).deltaSpace;
+                    shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height; //to top all
+                    shape.snappingParametrs.coordinatsForSnappingSelection.x = this.selection.x;
                     if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
-                        this.selection.x = shape.x; //to top to left
+                        shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x; //to top to left
                         console.log('//to top to left')
                     } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
-                        this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
+                        shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + (shape.width - this.selection.width); //to top to right
                         console.log('//to top to right')
                     }
-                } else if (this.deltaY_Bottom(shape, mergeSpace)) {
-                    this.selection.y = shape.y - this.selection.height; //to bottom all
+                } else if (this.checkDeltaToBottomShapes(shape, mergeSpace).response) {
+                    shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToBottomShapes(shape, mergeSpace).deltaSpace;
+                    shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y - this.selection.height; //to bottom all
+                    shape.snappingParametrs.coordinatsForSnappingSelection.x = this.selection.x;
                     if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
-                        this.selection.x = shape.x; //to bottom to left
+                        shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x; //to bottom to left
                     } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
-                        this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
+                        shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
                     }
                 }
-
                 if (this.overlapShape(shape)) {
                     this.selection.overlap = true;
                     shape.overlap = true;
-                    return;
+                    return false;
                 } else {
                     shape.overlap = false;
                 }
-
+                if (this.checkDeltaToRightShapes(shape, mergeSpace).response ||
+                    this.checkDeltaToLeftShapes(shape, mergeSpace).response ||
+                    this.checkDeltaToTopShapes(shape, mergeSpace).response ||
+                    this.checkDeltaToBottomShapes(shape, mergeSpace).response) {
+                    return true
+                }
             }
         });
 
-        console.log(arrayShapesForSnapping);
-        /*this.shapes.forEach((shape: Shape, index: number) => {
-            if (shape != this.selection && !stopForEach) {
+        if (arrayShapesForSnapping.length) {
+            arrayShapesForSnapping.sort((a: Shape, b: Shape) => {
+                if (a.snappingParametrs.deltaSnappingWithSelection < b.snappingParametrs.deltaSnappingWithSelection) {
+                    return -1;
+                }
+                if (a.snappingParametrs.deltaSnappingWithSelection >= b.snappingParametrs.deltaSnappingWithSelection) {
+                    return 1;
+                }
+                return 0;
+            });
 
-                if (this.deltaX_Right(shape, mergeSpace)) {
-                    this.selection.x = shape.x - this.selection.width; //to right to all
-                    if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
-                        this.selection.y = shape.y + shape.height - this.selection.height; //to right to bottom
-                    } else if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
-                        this.selection.y = shape.y; //to right to top
-                    }
-                } else if (this.deltaX_Left(shape, mergeSpace)) {
-                    this.selection.x = shape.x + shape.width; //to left to all
-                    if (Math.abs(this.selection.y - shape.y) <= mergeSpace) {
-                        this.selection.y = shape.y; //to left to top
-                    } else if (Math.abs((this.selection.y + this.selection.height) - (shape.y + shape.height)) <= mergeSpace) {
-                        this.selection.y = shape.y + shape.height - this.selection.height; //to left to bottom
-                    }
-                }
-                if (this.deltaY_Top(shape, mergeSpace)) {
-                    this.selection.y = shape.y + shape.height; //to top all
-                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
-                        this.selection.x = shape.x; //to top to left
-                        console.log('//to top to left')
-                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
-                        this.selection.x = shape.x + (shape.width - this.selection.width); //to top to right
-                        console.log('//to top to right')
-                    }
-                } else if (this.deltaY_Bottom(shape, mergeSpace)) {
-                    this.selection.y = shape.y - this.selection.height; //to bottom all
-                    if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
-                        this.selection.x = shape.x; //to bottom to left
-                    } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
-                        this.selection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
-                    }
-                }
-
-                console.log( this.selection.x, this.selection.y )
-                if (this.overlapShape(shape)) {
-                    this.selection.overlap = true;
-                    shape.overlap = true;
-                    stopForEach = true;
-                    return;
-                } else {
-                    shape.overlap = false;
-                }
-            }
-        });*/
+            console.log(' sort Array ');
+            console.log(arrayShapesForSnapping);
+            this.selection.x = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.x;
+            this.selection.y = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.y;
+        }
         this.inspectedIsEnd();
     }
 
@@ -233,32 +205,45 @@ export default class CanvasState {
         return Math.abs((this.selection.x + this.selection.width) - (shape.x + shape.width)) <= mergeSpace && this.selection.x >= 0;
     }
 
-    private deltaX_All(shape: Shape): boolean {
+    private axleCheckX(shape: Shape): boolean {
         return this.selection.x + this.selection.width - shape.x >= 0 && shape.x + shape.width - this.selection.x >= 0
     }
 
-    private delteY_All(shape: Shape): boolean {
+    private axleCheckY(shape: Shape): boolean {
         return this.selection.y + this.selection.height - shape.y >= 0 && shape.y + shape.height - this.selection.y >= 0
     }
 
-    private deltaX_Left(shape: Shape, mergeSpace: number): boolean {
+
+    private checkDeltaToLeftShapes(shape: Shape, mergeSpace: number): any {
         const spaceOnShape: number = this.selection.x - (shape.x + shape.width);
-        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.delteY_All(shape);
+        return {
+            response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.axleCheckY(shape),
+            deltaSpace: spaceOnShape
+        };
     }
 
-    private deltaX_Right(shape: Shape, mergeSpace: number): boolean {
-        const spaceOnShapes: number = shape.x - (this.selection.x + this.selection.width);
-        return spaceOnShapes <= mergeSpace && spaceOnShapes >= 0 && this.delteY_All(shape);
+    private checkDeltaToRightShapes(shape: Shape, mergeSpace: number): any {
+        const spaceOnShape: number = shape.x - (this.selection.x + this.selection.width);
+        return {
+            response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.axleCheckY(shape),
+            deltaSpace: spaceOnShape
+        };
     }
 
-    private deltaY_Top(shape: Shape, mergeSpace: number): boolean {
+    private checkDeltaToTopShapes(shape: Shape, mergeSpace: number): any {
         const spaceOnShape: number = this.selection.y - (shape.y + shape.height);
-        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.deltaX_All(shape);
+        return {
+            response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.axleCheckX(shape),
+            deltaSpace: spaceOnShape
+        };
     }
 
-    private deltaY_Bottom(shape: Shape, mergeSpace: number): boolean {
+    private checkDeltaToBottomShapes(shape: Shape, mergeSpace: number): any {
         const spaceOnShape: number = shape.y - (this.selection.y + this.selection.height);
-        return spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.deltaX_All(shape);
+        return {
+            response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && this.axleCheckX(shape),
+            deltaSpace: spaceOnShape
+        };
     }
 
 }

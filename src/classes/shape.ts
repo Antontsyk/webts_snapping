@@ -1,7 +1,6 @@
 import Point from "./point";
 
 interface SnappingParametrs {
-    necessarySnappingWithThis: boolean,
     deltaSnappingWithSelection: number,
     coordinatsForSnappingSelection: Point;
 }
@@ -17,7 +16,6 @@ export default class Shape {
     public path: any;
     public overlap: boolean = false;
     public snappingParametrs: SnappingParametrs = {
-        necessarySnappingWithThis: false,
         deltaSnappingWithSelection: 0,
         coordinatsForSnappingSelection:{
             x: 0,
