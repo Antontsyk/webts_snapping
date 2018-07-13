@@ -70,7 +70,7 @@ export default class CanvasState {
         this.context.clearRect(0, 0, this.width, this.height);
     }
 
-    private getMouse(event: MouseEvent): object {
+    private getMouse(event: MouseEvent): Point {
         const rect = this.canvas.getBoundingClientRect();
         return {
             x: Math.round(event.clientX - rect.left),
@@ -102,6 +102,13 @@ export default class CanvasState {
 
         let arrayShapesForSnapping: Array<Shape> = this.shapes.filter((shape: Shape) => {
             if (shape != this.selection) {
+                if (this.overlapShape(shape)) {
+                    this.selection.overlap = true;
+                    shape.overlap = true;
+                    return false;
+                } else {
+                    shape.overlap = false;
+                }
                 if (this.checkDeltaToRightShapes(shape, mergeSpace).response) {
                     shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToRightShapes(shape, mergeSpace).deltaSpace;
                     shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x - this.selection.width; //to right to all
@@ -141,13 +148,6 @@ export default class CanvasState {
                         shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + (shape.width - this.selection.width); //to bottom to right
                     }
                 }
-                if (this.overlapShape(shape)) {
-                    this.selection.overlap = true;
-                    shape.overlap = true;
-                    return false;
-                } else {
-                    shape.overlap = false;
-                }
                 if (this.checkDeltaToRightShapes(shape, mergeSpace).response ||
                     this.checkDeltaToLeftShapes(shape, mergeSpace).response ||
                     this.checkDeltaToTopShapes(shape, mergeSpace).response ||
@@ -172,7 +172,19 @@ export default class CanvasState {
             console.log(arrayShapesForSnapping);
             this.selection.x = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.x;
             this.selection.y = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.y;
+
+            this.shapes.forEach((shape: Shape) => {
+                if( shape == this.selection ) { return; }
+                if (this.overlapShape(shape)) {
+                    this.selection.overlap = true;
+                    shape.overlap = true;
+                    return false;
+                } else {
+                    shape.overlap = false;
+                }
+            });
         }
+
         this.inspectedIsEnd();
     }
 
