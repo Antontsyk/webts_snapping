@@ -5,7 +5,7 @@ const Shapes: Array<Shape> = [
     new Shape( 100,250,300,100, 'gray'),
     new Shape( 100,400,100,100, 'blue'),
     new Shape( 100,550,200,100, 'yellow'),
-    new Shape( 100,700,550,300, 'LightCoral')
+    new Shape( 100,700,550,200, 'LightCoral')
 ];
 
 export default Shapes;

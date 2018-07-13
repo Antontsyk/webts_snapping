@@ -11,7 +11,7 @@ export default class CanvasState {
     private deltaMouse: Point = {x: 0, y: 0};
     private startPosition: Point = {x: 0, y: 0};
 
-    constructor(canvas: any, shapes: Array<any>) {
+    constructor(canvas: any, shapes: Array<Shape>) {
         this.canvas = canvas;
         this.width = canvas.width;
         this.height = canvas.height;
@@ -21,6 +21,24 @@ export default class CanvasState {
         this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this), true);
         this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this), true);
         this.draw();
+        //this.addShape();
+    }
+
+    private addShape(){
+        this.clear();
+        this.shapes = [];
+        function randomInteger(min, max) {
+            var rand = min + Math.random() * (max - min)
+            rand = Math.round(rand);
+            return rand;
+        }
+        let interval = setInterval(()=>{
+            this.shapes.push( new Shape( randomInteger(0, this.width - 200), randomInteger(0,this.height - 300), randomInteger(100,500),randomInteger(100,500), '#9'+randomInteger(10,99)+'9'+randomInteger(10,99)  ) )
+            this.draw()
+        }, 100);
+        setTimeout(()=>{
+            clearInterval(interval);
+        },2000)
     }
 
     private onMouseDown(event: MouseEvent) {
@@ -94,13 +112,38 @@ export default class CanvasState {
     }
 
     private snappingShape() {
-        const mergeSpace: number = 40;
+        const mergeSpacing: number = 40;
         if (!this.selection) {
             return;
         }
         this.selection.overlap = false;
 
-        let arrayShapesForSnapping: Array<Shape> = this.shapes.filter((shape: Shape) => {
+        const arrayShapesForSnapping: Array<Shape> = this.filterAndSortShapesForSnapping(mergeSpacing);
+
+        if (arrayShapesForSnapping.length) {
+            console.log(arrayShapesForSnapping[0].snappingParametrs.deltaSnappingWithSelection);
+            this.selection.x = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.x;
+            this.selection.y = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.y;
+
+            this.shapes.forEach((shape: Shape) => {
+                if (shape == this.selection) {
+                    return;
+                }
+                if (this.overlapShape(shape)) {
+                    this.selection.overlap = true;
+                    shape.overlap = true;
+                    return false;
+                } else {
+                    shape.overlap = false;
+                }
+            });
+        }
+        this.inspectedIsEnd();
+    }
+
+    private filterAndSortShapesForSnapping(mergeSpacing: number): Array<Shape> {
+        const mergeSpace: number = mergeSpacing;
+        return this.shapes.filter((shape: Shape) => {
             if (shape != this.selection) {
                 if (this.overlapShape(shape)) {
                     this.selection.overlap = true;
@@ -133,10 +176,8 @@ export default class CanvasState {
                     shape.snappingParametrs.coordinatsForSnappingSelection.x = this.selection.x;
                     if (this.inspectedSpaceForSnappingToLeft(shape, mergeSpace)) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x; //to top to left
-                        console.log('//to top to left')
                     } else if (this.inspectedSpaceForSnappingToRight(shape, mergeSpace)) {
                         shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + (shape.width - this.selection.width); //to top to right
-                        console.log('//to top to right')
                     }
                 } else if (this.checkDeltaToBottomShapes(shape, mergeSpace).response) {
                     shape.snappingParametrs.deltaSnappingWithSelection = this.checkDeltaToBottomShapes(shape, mergeSpace).deltaSpace;
@@ -155,37 +196,15 @@ export default class CanvasState {
                     return true
                 }
             }
+        }).sort((a: Shape, b: Shape) => {
+            if (a.snappingParametrs.deltaSnappingWithSelection < b.snappingParametrs.deltaSnappingWithSelection) {
+                return -1;
+            }
+            if (a.snappingParametrs.deltaSnappingWithSelection >= b.snappingParametrs.deltaSnappingWithSelection) {
+                return 1;
+            }
+            return 0;
         });
-
-        if (arrayShapesForSnapping.length) {
-            arrayShapesForSnapping.sort((a: Shape, b: Shape) => {
-                if (a.snappingParametrs.deltaSnappingWithSelection < b.snappingParametrs.deltaSnappingWithSelection) {
-                    return -1;
-                }
-                if (a.snappingParametrs.deltaSnappingWithSelection >= b.snappingParametrs.deltaSnappingWithSelection) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            console.log(' sort Array ');
-            console.log(arrayShapesForSnapping);
-            this.selection.x = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.x;
-            this.selection.y = arrayShapesForSnapping[0].snappingParametrs.coordinatsForSnappingSelection.y;
-
-            this.shapes.forEach((shape: Shape) => {
-                if( shape == this.selection ) { return; }
-                if (this.overlapShape(shape)) {
-                    this.selection.overlap = true;
-                    shape.overlap = true;
-                    return false;
-                } else {
-                    shape.overlap = false;
-                }
-            });
-        }
-
-        this.inspectedIsEnd();
     }
 
     private inspectedIsEnd() {
@@ -224,7 +243,6 @@ export default class CanvasState {
     private axleCheckY(shape: Shape): boolean {
         return this.selection.y + this.selection.height - shape.y >= 0 && shape.y + shape.height - this.selection.y >= 0
     }
-
 
     private checkDeltaToLeftShapes(shape: Shape, mergeSpace: number): any {
         const spaceOnShape: number = this.selection.x - (shape.x + shape.width);

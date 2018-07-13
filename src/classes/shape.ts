@@ -5,13 +5,7 @@ interface SnappingParametrs {
     coordinatsForSnappingSelection: Point;
 }
 
-
 export default class Shape {
-
-    public x: number;
-    public y: number;
-    public width: number;
-    public height: number;
     public fill: string;
     public path: any;
     public overlap: boolean = false;
@@ -23,11 +17,7 @@ export default class Shape {
         }
     };
 
-    constructor( x: number, y: number, width: number, height: number, fill: string ){
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+    constructor( public x: number, public y: number, public width: number, public height: number, fill: string ){
         this.fill = fill || '#AAAAAA';
         this.updatePath();
     }
