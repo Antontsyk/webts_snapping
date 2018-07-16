@@ -9,8 +9,9 @@ export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number)
             return false;
         }
 
-        if (checkDeltaToShape('right', selectionShape, shape, mergeSpace).response) {
-            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShape('right', selectionShape, shape, mergeSpace).deltaSpace;
+        const checkDeltaToShapeRight = checkDeltaToShape('right', selectionShape, shape, mergeSpace);
+        if (checkDeltaToShapeRight.response) {
+            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShapeRight.deltaSpace;
             shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x - selectionShape.width; //to right to all
             shape.snappingParametrs.coordinatsForSnappingSelection.y = selectionShape.y;
             if (checkMergeSpaceToSide('top', selectionShape, shape, mergeSpace)) {
@@ -20,8 +21,9 @@ export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number)
             }
             return true
         }
-        if (checkDeltaToShape('left', selectionShape, shape, mergeSpace).response) {
-            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShape('left', selectionShape, shape, mergeSpace).deltaSpace;
+        const checkDeltaToShapeLeft = checkDeltaToShape('left', selectionShape, shape, mergeSpace);
+        if (checkDeltaToShapeLeft.response) {
+            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShapeLeft.deltaSpace;
             shape.snappingParametrs.coordinatsForSnappingSelection.x = shape.x + shape.width; //to left to all
             shape.snappingParametrs.coordinatsForSnappingSelection.y = selectionShape.y;
             if (checkMergeSpaceToSide('top', selectionShape, shape, mergeSpace)) {
@@ -31,8 +33,9 @@ export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number)
             }
             return true
         }
-        if (checkDeltaToShape('top', selectionShape, shape, mergeSpace).response) {
-            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShape('top', selectionShape, shape, mergeSpace).deltaSpace;
+        const checkDeltaToShapeTop = checkDeltaToShape('top', selectionShape, shape, mergeSpace);
+        if (checkDeltaToShapeTop.response) {
+            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShapeTop.deltaSpace;
             shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y + shape.height; //to top all
             shape.snappingParametrs.coordinatsForSnappingSelection.x = selectionShape.x;
             if (checkMergeSpaceToSide('left', selectionShape, shape, mergeSpace)) {
@@ -42,8 +45,9 @@ export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number)
             }
             return true
         }
-        if (checkDeltaToShape('bottom', selectionShape, shape, mergeSpace).response) {
-            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShape('bottom', selectionShape, shape, mergeSpace).deltaSpace;
+        const checkDeltaToShapeBottom = checkDeltaToShape('bottom', selectionShape, shape, mergeSpace);
+        if (checkDeltaToShapeBottom.response) {
+            shape.snappingParametrs.deltaSnappingWithSelection = checkDeltaToShapeBottom.deltaSpace;
             shape.snappingParametrs.coordinatsForSnappingSelection.y = shape.y - selectionShape.height; //to bottom all
             shape.snappingParametrs.coordinatsForSnappingSelection.x = selectionShape.x;
             if (checkMergeSpaceToSide('left', selectionShape, shape, mergeSpace)) {

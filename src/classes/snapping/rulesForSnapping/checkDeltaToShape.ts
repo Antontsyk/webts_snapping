@@ -8,35 +8,37 @@ interface checkDeltaResponse {
 
 export default function checkDeltaToShape(side: String, selectionShape: Shape, shape: Shape, mergeSpace: number): checkDeltaResponse {
     let spaceOnShape: number;
+
+    enum axle { x = 'x', y = 'y' };
+
+    let axleThis: axle;
+
     switch (side) {
         case 'left':
             spaceOnShape = selectionShape.x - (shape.x + shape.width);
-            return {
-                response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck('y', selectionShape, shape),
-                deltaSpace: spaceOnShape
-            };
+            axleThis = axle.y;
+            break;
         case 'right':
             spaceOnShape = shape.x - (selectionShape.x + selectionShape.width);
-            return {
-                response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck('y', selectionShape, shape),
-                deltaSpace: spaceOnShape
-            };
+            axleThis = axle.y;
+            break;
         case 'top':
             spaceOnShape = selectionShape.y - (shape.y + shape.height);
-            return {
-                response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck('x', selectionShape, shape),
-                deltaSpace: spaceOnShape
-            };
+            axleThis = axle.x;
+            break;
         case 'bottom':
             spaceOnShape = shape.y - (selectionShape.y + selectionShape.height);
-            return {
-                response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck('x', selectionShape, shape),
-                deltaSpace: spaceOnShape
-            };
+            axleThis = axle.x;
+            break;
         default:
             return {
                 response: false,
                 deltaSpace: 0
             };
     }
+
+    return {
+        response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck(axleThis, selectionShape, shape),
+        deltaSpace: spaceOnShape
+    };
 }

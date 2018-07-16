@@ -1,6 +1,6 @@
 import Shape from "../../shape";
 
-export default function checkMergeSpaceToSide( side: String, selectionShape: Shape, shape: Shape, mergeSpace: number ): boolean{
+export default ( side, selectionShape: Shape, shape: Shape, mergeSpace: number ): boolean => {
     switch (side){
         case "left":
             return Math.abs(selectionShape.x - shape.x) <= mergeSpace;
