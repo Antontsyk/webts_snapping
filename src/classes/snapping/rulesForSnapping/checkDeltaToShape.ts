@@ -9,7 +9,7 @@ interface checkDeltaResponse {
 export default function checkDeltaToShape(side: String, selectionShape: Shape, shape: Shape, mergeSpace: number): checkDeltaResponse {
     let spaceOnShape: number;
 
-    enum axle { X, Y };
+    enum axle { X = 'x', Y = 'y' };
 
     let axleThis: any;
 
