@@ -9,26 +9,26 @@ interface checkDeltaResponse {
 export default function checkDeltaToShape(side: String, selectionShape: Shape, shape: Shape, mergeSpace: number): checkDeltaResponse {
     let spaceOnShape: number;
 
-    enum axle { x = 'x', y = 'y' };
+    enum axle { X, Y };
 
-    let axleThis: axle;
+    let axleThis: any;
 
     switch (side) {
         case 'left':
             spaceOnShape = selectionShape.x - (shape.x + shape.width);
-            axleThis = axle.y;
+            axleThis = axle.Y;
             break;
         case 'right':
             spaceOnShape = shape.x - (selectionShape.x + selectionShape.width);
-            axleThis = axle.y;
+            axleThis = axle.Y;
             break;
         case 'top':
             spaceOnShape = selectionShape.y - (shape.y + shape.height);
-            axleThis = axle.x;
+            axleThis = axle.X;
             break;
         case 'bottom':
             spaceOnShape = shape.y - (selectionShape.y + selectionShape.height);
-            axleThis = axle.x;
+            axleThis = axle.X;
             break;
         default:
             return {
@@ -38,7 +38,7 @@ export default function checkDeltaToShape(side: String, selectionShape: Shape, s
     }
 
     return {
-        response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck(axleThis, selectionShape, shape),
+        response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck( axleThis, selectionShape, shape),
         deltaSpace: spaceOnShape
     };
 }

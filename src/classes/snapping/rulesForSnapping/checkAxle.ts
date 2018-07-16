@@ -1,10 +1,10 @@
 import Shape from "../../shape";
 
-export default function axleCheck( axle: String, selectionShape: Shape, shape: Shape ): boolean {
+export default function axleCheck( axle, selectionShape: Shape, shape: Shape ): boolean {
     switch (axle){
-        case 'x':
+        case 0:
             return selectionShape.x + selectionShape.width - shape.x >= 0 && shape.x + shape.width - selectionShape.x >= 0;
-        case 'y':
+        case 1:
             return selectionShape.y + selectionShape.height - shape.y >= 0 && shape.y + shape.height - selectionShape.y >= 0;
         default:
             return false;
