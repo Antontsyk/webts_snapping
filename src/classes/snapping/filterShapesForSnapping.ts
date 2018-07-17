@@ -1,14 +1,8 @@
 import Shape from "../shape";
 import ruleOverlay from "../overlay/ruleOverlay";
-import checkMergeSpaceToSide from "./rulesForSnapping/checkMergeSpaceToSide"
-import checkDeltaToShape from "./rulesForSnapping/checkDeltaToShape"
-
-enum side {
-    Left = 'left',
-    Right = 'right',
-    Top = 'top',
-    Bottom = 'bottom'
-}
+import checkMergeSpaceToSide from "./rulesForSnapping/checkMergeSpaceToSide";
+import checkDeltaToShape from "./rulesForSnapping/checkDeltaToShape";
+import side from "./enums/sides";
 
 export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number): Array<Shape> => {
     return shapes.filter((shape: Shape) => {

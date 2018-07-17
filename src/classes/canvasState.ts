@@ -52,12 +52,12 @@ export default class CanvasState {
         const mouse: any = this.getMouse(event);
         this.selection.updateShape(mouse.x - this.deltaMouse.x, mouse.y - this.deltaMouse.y);
 
-        const snappingPosition = snappingShape( this.shapes, this.selection );
-        this.selection.updateShape(snappingPosition.x, snappingPosition.y );
+        const snappingPosition = snappingShape(this.shapes, this.selection);
+        this.selection.updateShape(snappingPosition.x, snappingPosition.y);
 
-        const checkIsEndPosition = checkIsEnd( this.selection, this.width, this.height );
-        this.selection.updateShape( checkIsEndPosition.x, checkIsEndPosition.y );
-        checkOverlay( this.shapes, this.selection );
+        const checkIsEndPosition = checkIsEnd(this.selection, this.width, this.height);
+        this.selection.updateShape(checkIsEndPosition.x, checkIsEndPosition.y);
+        checkOverlay(this.shapes, this.selection);
         this.draw();
     }
 

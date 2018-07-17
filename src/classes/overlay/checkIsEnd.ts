@@ -1,7 +1,7 @@
 import Shape from "../shape";
 import Point from "../point";
 
-export default ( selectionShape: Shape, widthCanvas:number, heightCanvas:number  ): Point => {
+export default (selectionShape: Shape, widthCanvas: number, heightCanvas: number): Point => {
     let newX: number = selectionShape.x;
     let newY: number = selectionShape.y;
     if (selectionShape.x <= 0) {
@@ -12,7 +12,7 @@ export default ( selectionShape: Shape, widthCanvas:number, heightCanvas:number 
 
     if (selectionShape.y <= 0) {
         newY = 0;
-    } else if (selectionShape.y + selectionShape.height >= heightCanvas ) {
+    } else if (selectionShape.y + selectionShape.height >= heightCanvas) {
         newY = heightCanvas - selectionShape.height;
     }
     return {

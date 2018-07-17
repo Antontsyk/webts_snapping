@@ -1,14 +1,15 @@
 import Shape from "../../shape";
+import side from "../enums/sides"
 
-export default ( side, selectionShape: Shape, shape: Shape, mergeSpace: number ): boolean => {
-    switch (side){
-        case "left":
+export default (sideCheck, selectionShape: Shape, shape: Shape, mergeSpace: number): boolean => {
+    switch (sideCheck) {
+        case side.Left:
             return Math.abs(selectionShape.x - shape.x) <= mergeSpace;
-        case "right":
+        case side.Right:
             return Math.abs((selectionShape.x + selectionShape.width) - (shape.x + shape.width)) <= mergeSpace && selectionShape.x >= 0;
-        case "top":
+        case side.Top:
             return Math.abs(selectionShape.y - shape.y) <= mergeSpace;
-        case "bottom":
+        case side.Bottom:
             return Math.abs((selectionShape.y + selectionShape.height) - (shape.y + shape.height)) <= mergeSpace;
         default:
             return false;

@@ -15,6 +15,3 @@ export default (shapes: Array<Shape>, selectionShape: Shape): Point => {
     }
 
 }
-
-
-
