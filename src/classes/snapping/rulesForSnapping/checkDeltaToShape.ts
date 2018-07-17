@@ -10,9 +10,7 @@ interface checkDeltaResponse {
 
 export default function checkDeltaToShape(sideCheck, selectionShape: Shape, shape: Shape, mergeSpace: number): checkDeltaResponse {
     let spaceOnShape: number;
-
     let axleThis: axle;
-
     switch (sideCheck) {
         case side.Left:
             spaceOnShape = selectionShape.x - (shape.x + shape.width);
@@ -36,7 +34,6 @@ export default function checkDeltaToShape(sideCheck, selectionShape: Shape, shap
                 deltaSpace: 0
             };
     }
-
     return {
         response: spaceOnShape <= mergeSpace && spaceOnShape >= 0 && axleCheck(axleThis, selectionShape, shape),
         deltaSpace: spaceOnShape
