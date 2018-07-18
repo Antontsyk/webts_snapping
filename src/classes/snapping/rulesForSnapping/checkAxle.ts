@@ -1,7 +1,7 @@
 import Shape from "../../shape";
 import axle from "../enums/axle";
 
-export default function axleCheck(axleCheck, selectionShape: Shape, shape: Shape): boolean {
+export default (axleCheck, selectionShape: Shape, shape: Shape): boolean => {
     switch (axleCheck) {
         case axle.X:
             return selectionShape.x + selectionShape.width - shape.x >= 0 && shape.x + shape.width - selectionShape.x >= 0;
