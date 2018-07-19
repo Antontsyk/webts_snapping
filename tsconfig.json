@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
+        "rootDir": ".",
+        "baseUrl": ".",
         "outDir": "./dist/",
         "sourceMap": true,
         "noImplicitAny": false,

@@ -1,5 +1,5 @@
-import ruleOverlay from '../../../../src/classes/overlay/ruleOverlay';
-import Shape from "../../../../src/classes/shape";
+import ruleOverlay from 'src/classes/overlay/ruleOverlay';
+import Shape from "src/classes/shape";
 
 
 describe('ruleOverlay', () =>{

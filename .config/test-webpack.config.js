@@ -20,12 +20,14 @@ module.exports = {
     ],
 
     resolve: {
-        extensions: ['.ts', '.js', '.tsx']
+        extensions: ['.ts', '.js', '.tsx'],
+        alias: {
+            src: path.resolve('./src')
+        }
     },
 
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.ts$/, use: [{
                     loader: 'ts-loader'
                 }]

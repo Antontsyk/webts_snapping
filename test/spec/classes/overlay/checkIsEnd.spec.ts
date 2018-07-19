@@ -1,5 +1,5 @@
-import Shape from '../../../../src/classes/shape';
-import checkIsEnd from '../../../../src/classes/overlay/checkIsEnd'
+import Shape from 'src/classes/shape';
+import checkIsEnd from 'src/classes/overlay/checkIsEnd';
 
 describe("Check is end window", () => {
     beforeEach(function () {
