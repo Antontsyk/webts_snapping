@@ -4,22 +4,23 @@ module.exports = function(config) {
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
-        basePath: './',
+        basePath: '.',
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         frameworks: ['jasmine'],
         // list of files / patterns to load in the browser
         files: [
-            'test/**/*.spec.ts'
+            'test/index.spec.ts'
         ],
         // list of files to exclude
         exclude: [
+            /*'src/!**!/!*.ts',*/
         ],
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
             'test/**/*.spec.ts': ['webpack'],
-            'src/**/*.ts': ['webpack'],
+            'src/**/*.ts': ['webpack']
         },
         // test results reporter to use
         // possible values: 'dots', 'progress'
@@ -44,15 +45,17 @@ module.exports = function(config) {
         // Concurrency level
         // how many browser should be started simultaneous
         concurrency: Infinity,
-
         mime: {
             'text/x-typescript': ['ts','tsx']
         },
-
-        // Set Webpack configuration, but set the entry to spec files
+       // Set Webpack configuration, but set the entry to spec files
         webpack: {
             module: webpackConfig.module,
             resolve: webpackConfig.resolve
+        },
+        webpackMiddleware: {
+            noInfo: true,
+            stats: 'errors-only'
         }
     })
 };
