@@ -6,7 +6,8 @@
   "dependencies": {
     "babel-core": "^6.26.3",
     "import-inject-loader": "^0.2.4",
-    "inject-loader": "^3.0.1"
+    "inject-loader": "^3.0.1",
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
     "@types/jasmine": "^2.5.35",
