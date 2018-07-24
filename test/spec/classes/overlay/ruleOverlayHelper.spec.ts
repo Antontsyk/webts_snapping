@@ -1,4 +1,4 @@
-import ruleOverlay from 'src/classes/overlay/ruleOverlay';
+import ruleOverlayHelper from 'src/classes/overlay/ruleOverlayHelper';
 import Shape from "src/classes/shape";
 
 
@@ -9,11 +9,11 @@ describe('ruleOverlay', () =>{
     });
 
     it('should overlay', function () {
-        expect( ruleOverlay( this.shape1, this.shape2 ) ).toBe(true);
+        expect( ruleOverlayHelper.checkOverlay( this.shape1, this.shape2 ) ).toBe(true);
     });
     it('should not overlay', function () {
         this.shape2.x = 100;
         this.shape2.y = 200;
-        expect( ruleOverlay( this.shape1, this.shape2 ) ).toBe(false);
+        expect( ruleOverlayHelper.checkOverlay( this.shape1, this.shape2 ) ).toBe(false);
     });
 });

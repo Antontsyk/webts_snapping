@@ -1,12 +1,12 @@
 import Shape from "../shape";
-import ruleOverlay from "../overlay/ruleOverlay";
+import ruleOverlayHelper from "../overlay/ruleOverlayHelper";
 import checkMergeSpaceToSide from "./rulesForSnapping/checkMergeSpaceToSide";
 import checkDeltaToShape from "./rulesForSnapping/checkDeltaToShape";
 import side from "./enums/sides";
 
 export default (shapes: Array<Shape>, selectionShape: Shape, mergeSpace: number): Array<Shape> => {
     return shapes.filter((shape: Shape) => {
-        if (shape == selectionShape || ruleOverlay(selectionShape, shape)) {
+        if (shape == selectionShape || ruleOverlayHelper.checkOverlay(selectionShape, shape)) {
             return false;
         }
 
