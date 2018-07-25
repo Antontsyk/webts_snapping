@@ -1,6 +1,6 @@
 import Point from "./point";
 import Shape from "./shape";
-import checkIsEnd from "./overlay/checkIsEnd";
+import isEndHelper from "./overlay/IsEndHelper";
 import snappingShape from "./snapping/snapping";
 import overlayHelper from "./overlay/overlayHelper";
 
@@ -55,7 +55,7 @@ export default class CanvasState {
         const snappingPosition = snappingShape(this.shapes, this.selection);
         this.selection.updateShape(snappingPosition.x, snappingPosition.y);
 
-        const checkIsEndPosition = checkIsEnd(this.selection, this.width, this.height);
+        const checkIsEndPosition = isEndHelper.checkReturnPosition(this.selection, this.width, this.height);
         this.selection.updateShape(checkIsEndPosition.x, checkIsEndPosition.y);
         overlayHelper.editParametrOverlap(this.shapes, this.selection);
         this.draw();

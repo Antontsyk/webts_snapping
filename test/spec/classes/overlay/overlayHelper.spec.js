@@ -1,5 +1,4 @@
 import Shape from "src/classes/shape";
-import overlayHelper from "src/classes/overlay/overlayHelper";
 import inject from 'inject-loader!src/classes/overlay/overlayHelper';
 
 
@@ -10,7 +9,8 @@ describe('checkOverlay', function() {
 
         this.overlayHelper = inject({
             './ruleOverlayHelper': this.overlayRuleHelper
-        });
+        }).default;
+
 
 
         this.shape =  new Shape(100, 100, 200, 200, 'black');
@@ -23,8 +23,22 @@ describe('checkOverlay', function() {
 
     it('should change paramert overlay = true in shape', function () {
         this.overlayRuleHelper.checkOverlay.and.returnValue(true);
-        overlayHelper.editParametrOverlap(this.shapes, this.shapes);
+        this.overlayHelper.editParametrOverlap(this.shapes, this.shape);
+        expect(this.shapes[0].overlap).toBe(true);
+        expect(this.shapes[1].overlap).toBe(true);
+        expect(this.shapes[2].overlap).toBe(true);
+        expect(this.shape.overlap).toBe(true);
+    });
+
+
+    it('should not change paramert overlay', function () {
+        this.overlayRuleHelper.checkOverlay.and.returnValue(false);
+
+        this.overlayHelper.editParametrOverlap(this.shapes, this.shape);
         expect(this.shapes[0].overlap).toBe(false);
+        expect(this.shapes[1].overlap).toBe(false);
+        expect(this.shapes[2].overlap).toBe(false);
+        expect(this.shape.overlap).toBe(false);
     });
 
 });

@@ -1,5 +1,5 @@
 import Shape from 'src/classes/shape';
-import checkIsEnd from 'src/classes/overlay/checkIsEnd';
+import IsEndHelper from 'src/classes/overlay/IsEndHelper';
 
 describe("Check is end window", () => {
     beforeEach(function () {
@@ -11,28 +11,33 @@ describe("Check is end window", () => {
     });
 
     it("no changes", function() {
-        expect(checkIsEnd( this.shape, this.widthCanvas, this.heightCanvas ) ).toEqual({ x:100, y: 100});
+        expect(IsEndHelper.checkReturnPosition( this.shape, this.widthCanvas, this.heightCanvas ) )
+            .toEqual({ x:100, y: 100});
     });
 
     it("if got out for left part window", function() {
         this.shape.x = -100;
         this.shape.y = 100;
-        expect(checkIsEnd( this.shape, this.widthCanvas, this.heightCanvas ) ).toEqual({ x:0, y: 100});
+        expect(IsEndHelper.checkReturnPosition( this.shape, this.widthCanvas, this.heightCanvas ) )
+            .toEqual({ x:0, y: 100});
     });
 
     it("if got out for right part window", function() {
         this.shape.x = 900;
         this.shape.y = 100;
-        expect(checkIsEnd( this.shape, this.widthCanvas, this.heightCanvas ) ).toEqual({ x:800, y: 100});
+        expect(IsEndHelper.checkReturnPosition( this.shape, this.widthCanvas, this.heightCanvas ) )
+            .toEqual({ x:800, y: 100});
     });
     it("if got out for top part window", function() {
         this.shape.x = 100;
         this.shape.y = -100;
-        expect(checkIsEnd( this.shape, this.widthCanvas, this.heightCanvas ) ).toEqual({ x:100, y: 0});
+        expect(IsEndHelper.checkReturnPosition( this.shape, this.widthCanvas, this.heightCanvas ) )
+            .toEqual({ x:100, y: 0});
     });
     it("if got out for bottom part window", function() {
         this.shape.x = 100;
         this.shape.y = 990;
-        expect(checkIsEnd( this.shape, this.widthCanvas, this.heightCanvas ) ).toEqual({ x:100, y: 900});
+        expect(IsEndHelper.checkReturnPosition( this.shape, this.widthCanvas, this.heightCanvas ) )
+            .toEqual({ x:100, y: 900});
     });
 });
